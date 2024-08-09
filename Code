@@ -1,0 +1,183 @@
+function doGet() {
+  return HtmlService.createHtmlOutputFromFile('Index');
+}
+
+function submitVisitorData(visitor) {
+  var sheet = SpreadsheetApp.openById('1Ntrp4AD7FOaNd6CGT5BUsAritgqczeVeJfRZ-Xs9ZYM').getActiveSheet();
+  var date = new Date();
+  var formattedDate = Utilities.formatDate(date, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  var formattedTime = Utilities.formatDate(date, Session.getScriptTimeZone(), 'HH:mm:ss');
+  
+  sheet.appendRow([
+    visitor.name,
+    visitor.designation,
+    formattedTime, // Time of Entry
+    visitor.purpose,
+    'Entered',
+    visitor.personToVisit,
+    visitor.phoneNumber,
+    visitor.govtID,
+    formattedDate, // Date
+    formattedTime, // Entry Time
+    '' // Exit Time
+  ]);
+  return 'Visitor added successfully';
+}
+
+function updateVisitorStatus(govtID) {
+  var sheet = SpreadsheetApp.openById('1Ntrp4AD7FOaNd6CGT5BUsAritgqczeVeJfRZ-Xs9ZYM').getActiveSheet();
+  var data = sheet.getDataRange().getValues();
+  var date = new Date();
+  var formattedTime = Utilities.formatDate(date, Session.getScriptTimeZone(), 'HH:mm:ss');
+  
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][7] == govtID) {
+      sheet.getRange(i + 1, 5).setValue('Exited'); // Status
+      sheet.getRange(i + 1, 11).setValue(formattedTime); // Exit Time
+      return 'Visitor status updated to Exited';
+    }
+  }
+  return 'Visitor not found';
+}
+
+
+
+*
+
+
+*
+
+
+*
+
+
+*
+
+
+*
+
+
+HTML CODE
+
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      background-color: #e6f7ff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      max-width: 500px;
+      width: 100%;
+    }
+    h1 {
+      text-align: center;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+    label {
+      margin-top: 10px;
+    }
+    input[type="text"], input[type="tel"] {
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .button-container {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      background-color: #473cb0;
+      color: white;
+      width: 48%;
+    }
+    #exitForm {
+      margin-top: 20px;
+    }
+    #exitForm input[type="text"] {
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Visitor Management System</h1>
+    <form id="visitorForm">
+      <label for="name">Name:* </label>
+      <input type="text" id="name" name="name" required>
+      <label for="designation">Designation: </label>
+      <input type="text" id="designation" name="designation">
+      <label for="externalDevice">External Laptop/Device:* </label>
+      <input type="text" id="externalDevice" name="externalDevice" required>
+      <label for="purpose">Purpose of Visit:* </label>
+      <input type="text" id="purpose" name="purpose" required>
+      <label for="personToVisit">Person to Visit:* </label>
+      <input type="text" id="personToVisit" name="personToVisit" required>
+      <label for="phoneNumber">Phone Number:* </label>
+      <input type="tel" id="phoneNumber" name="phoneNumber" required pattern="[0-9]{10}">
+      <label for="govtID">Last 4 Digits of Govt. ID:* </label>
+      <input type="text" id="govtID" name="govtID" required pattern="[a-zA-Z0-9]{4}">
+      <div class="button-container">
+        <button type="submit" id="submitBtn">Submit</button>
+        <button type="button" id="resetBtn">Reset</button>
+      </div>
+    </form>
+    <form id="exitForm">
+      <label for="exitGovtID">Last 4 Digits of Govt. ID to Exit:</label>
+      <input type="text" id="exitGovtID" name="exitGovtID" required>
+      <button type="button" id="exitButton">Mark as Exited</button>
+    </form>
+  </div>
+  <script>
+    document.getElementById('visitorForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var visitor = {
+        name: document.getElementById('name').value,
+        designation: document.getElementById('designation').value,
+        externalDevice: document.getElementById('externalDevice').value,
+        purpose: document.getElementById('purpose').value,
+        personToVisit: document.getElementById('personToVisit').value,
+        phoneNumber: document.getElementById('phoneNumber').value,
+        govtID: document.getElementById('govtID').value
+      };
+      google.script.run.withSuccessHandler(function(response) {
+        alert(response);
+        document.getElementById('visitorForm').reset();
+      }).submitVisitorData(visitor);
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', function() {
+      document.getElementById('visitorForm').reset();
+    });
+
+    document.getElementById('exitButton').addEventListener('click', function() {
+      var govtID = document.getElementById('exitGovtID').value;
+      google.script.run.withSuccessHandler(function(response) {
+        alert(response);
+        document.getElementById('exitForm').reset();
+      }).updateVisitorStatus(govtID);
+    });
+  </script>
+</body>
+</html>
+
+
+
